@@ -59,8 +59,6 @@ jobs:
             --unit Count \
             --dimensions AppName=${{ env.APP_NAME }},Environment=dev
 
-      # Финальный штрих: если деплой упал, мы принудительно завершаем воркфлоу со статусом "ошибка",
-      # чтобы в самом GitHub Actions пайплайн горел красным, как и положено.
       - name: Check deploy status and fail if needed
         if: steps.s3_deploy.outcome == 'failure'
         run: exit 1
