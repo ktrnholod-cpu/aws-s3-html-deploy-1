@@ -8,7 +8,7 @@ permissions:
  id-token: write
  contents: read
  env:
-  Europe (Stockholm): eu-north-1
+  EUROPE_STOCKHOLM: eu-north-1
   S3_BUCKET: jekaterina-html-deploy-2026
   
 jobs:
@@ -24,7 +24,7 @@ jobs:
      uses: aws-actions/configure-aws-credentials@v4
      with:
       role-to-assume: arn:aws:iam::208937956131:role/GitHubActionsS3DeployRole
-      aws-region: ${{env.Europe(Stockholm)}}
+      aws-region: ${{env.EUROPE_STOCKHOLM}}
       
    - name: Deploy files to S3
      run: |
