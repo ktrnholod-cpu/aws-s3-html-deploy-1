@@ -1,34 +1,30 @@
-name: Deploy HTML to AWS S3
+name: Deploy to S3
+
 on:
- push:
-  branches:
-   - main
-   
+  push:
+    branches:
+      - main
+
 permissions:
- id-token: write
- contents: read
- env:
-  EUROPE_STOCKHOLM: eu-north-1
-  S3_BUCKET: jekaterina-html-deploy-2026
-  
+  id-token: write
+  contents: read
+
 jobs:
- deploy:
-  name: Deploy to S3
-  runs-on: ubuntu-latest
-  
-  steps:
-   - name: Checkout repository
-     uses: actions/checkout@v4
-     
-   - name: Configure AWS credentials using OIDC
-     uses: aws-actions/configure-aws-credentials@v4
-     with:
-      role-to-assume: arn:aws:iam::208937956131:role/GitHubActionsS3DeployRole
-      aws-region: ${{env.EUROPE_STOCKHOLM}}
-      
-   - name: Deploy files to S3
-     run: |
-      aws s3 sync . s3://${{ env.S3_BUCKET }} \
-       --delete \
-       --exclude ".git/*" \
-       --exclude ".github/*
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::208937956131:role/GitHubActionsS3DeployRole
+          aws-region: eu-north-1
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync . s3://ТВОЙ_BUCKET_NAME \
+            --exclude ".git/*" \
+            --exclude ".github/*"
