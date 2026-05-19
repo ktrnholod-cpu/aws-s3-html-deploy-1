@@ -31,15 +31,16 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy files to S3
-        id: deploy
+        id: s3_deploy
+        continue-on-error: true
         run: |
-          aws s3 sync . s3://${{ env.S3_BUCKET }} \
+          aws s3 sync . s3://FAKE-BUCKET-NAME-TO-PROVOKE-DEPLOY \
             --delete \
             --exclude ".git/*" \
             --exclude ".github/*"
 
       - name: Send success metric to CloudWatch
-        if: success()
+        if: steps.s3_deploy.outcome == 'success'
         run: |
           aws cloudwatch put-metric-data \
             --namespace "${{ env.CLOUDWATCH_NAMESPACE }}" \
@@ -49,7 +50,7 @@ jobs:
             --dimensions AppName=${{ env.APP_NAME }},Environment=dev
 
       - name: Send failure metric to CloudWatch
-        if: failure()
+        if: steps.s3_deploy.outcome == 'failure'
         run: |
           aws cloudwatch put-metric-data \
             --namespace "${{ env.CLOUDWATCH_NAMESPACE }}" \
@@ -57,3 +58,9 @@ jobs:
             --value 1 \
             --unit Count \
             --dimensions AppName=${{ env.APP_NAME }},Environment=dev
+
+      # Финальный штрих: если деплой упал, мы принудительно завершаем воркфлоу со статусом "ошибка",
+      # чтобы в самом GitHub Actions пайплайн горел красным, как и положено.
+      - name: Check deploy status and fail if needed
+        if: steps.s3_deploy.outcome == 'failure'
+        run: exit 1
