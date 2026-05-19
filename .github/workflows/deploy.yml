@@ -31,16 +31,15 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Deploy files to S3
-        id: s3_deploy
-        continue-on-error: true
+        id: deploy
         run: |
-          aws s3 sync . s3://FAKE-BUCKET-NAME-TO-PROVOKE-DEPLOY \
+          aws s3 sync . s3://${{ env.S3_BUCKET }} \
             --delete \
             --exclude ".git/*" \
             --exclude ".github/*"
 
       - name: Send success metric to CloudWatch
-        if: steps.s3_deploy.outcome == 'success'
+        if: success()
         run: |
           aws cloudwatch put-metric-data \
             --namespace "${{ env.CLOUDWATCH_NAMESPACE }}" \
@@ -50,7 +49,7 @@ jobs:
             --dimensions AppName=${{ env.APP_NAME }},Environment=dev
 
       - name: Send failure metric to CloudWatch
-        if: steps.s3_deploy.outcome == 'failure'
+        if: failure()
         run: |
           aws cloudwatch put-metric-data \
             --namespace "${{ env.CLOUDWATCH_NAMESPACE }}" \
@@ -58,7 +57,3 @@ jobs:
             --value 1 \
             --unit Count \
             --dimensions AppName=${{ env.APP_NAME }},Environment=dev
-
-      - name: Check deploy status and fail if needed
-        if: steps.s3_deploy.outcome == 'failure'
-        run: exit 1
