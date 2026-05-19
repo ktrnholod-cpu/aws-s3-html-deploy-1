@@ -25,6 +25,6 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync . s3://ТВОЙ_BUCKET_NAME \
+          aws s3 sync . s3://jekaterina-html-deploy-2026 \
             --exclude ".git/*" \
             --exclude ".github/*"
